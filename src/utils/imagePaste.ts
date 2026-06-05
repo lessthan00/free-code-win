@@ -98,12 +98,12 @@ export async function hasImageInClipboard(): Promise<boolean> {
     return false
   }
   if (
+    process.platform === 'darwin' &&
     feature('NATIVE_CLIPBOARD_IMAGE') &&
     getFeatureValue_CACHED_MAY_BE_STALE('tengu_collage_kaleidoscope', true)
   ) {
-    // Native NSPasteboard check (~0.03ms warm). Fall through to osascript
-    // when the module/export is missing. Catch a throw too: it would surface
-    // as an unhandled rejection in useClipboardImageHint's setTimeout.
+    // Native NSPasteboard check (~0.03ms warm). macOS only — the native
+    // image-processor-napi module is not available on Windows.
     try {
       const { getNativeModule } = await import('image-processor-napi')
       const hasImage = getNativeModule()?.hasClipboardImage

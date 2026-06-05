@@ -39,6 +39,11 @@ let audioNapiPromise: Promise<AudioNapi> | null = null
 
 function loadAudioNapi(): Promise<AudioNapi> {
   audioNapiPromise ??= (async () => {
+    // Native audio capture is not available on Windows — skip import.
+    if (process.platform === 'win32') {
+      audioNapi = unavailableAudioNapi
+      return unavailableAudioNapi
+    }
     const t0 = Date.now()
     try {
       const mod = (await import('audio-capture-napi')) as AudioNapi

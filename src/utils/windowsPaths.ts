@@ -80,32 +80,33 @@ function findExecutable(executable: string): string | null {
 }
 
 /**
- * If Windows, set the SHELL environment variable to git-bash path.
+ * If Windows, set the SHELL environment variable to git-bash path if available.
+ * Falls back to PowerShell (pwsh) when git-bash is not installed.
  * This is used by BashTool and Shell.ts for user shell commands.
  * COMSPEC is left unchanged for system process execution.
  */
 export function setShellIfWindows(): void {
   if (getPlatform() === 'windows') {
     const gitBashPath = findGitBashPath()
-    process.env.SHELL = gitBashPath
-    logForDebugging(`Using bash path: "${gitBashPath}"`)
+    if (gitBashPath) {
+      process.env.SHELL = gitBashPath
+      logForDebugging(`Using bash path: "${gitBashPath}"`)
+    }
+    // When git-bash is not available, PowerShell (pwsh) becomes the
+    // default shell — see resolveDefaultShell.ts.
   }
 }
 
 /**
- * Find the path where `bash.exe` included with git-bash exists, exiting the process if not found.
+ * Find the path where `bash.exe` included with git-bash exists.
+ * Returns null if git-bash is not found — callers should handle the
+ * fallback (PowerShell is the default shell on native Windows).
  */
-export const findGitBashPath = memoize((): string => {
+export const findGitBashPath = memoize((): string | null => {
   if (process.env.CLAUDE_CODE_GIT_BASH_PATH) {
     if (checkPathExists(process.env.CLAUDE_CODE_GIT_BASH_PATH)) {
       return process.env.CLAUDE_CODE_GIT_BASH_PATH
     }
-    // biome-ignore lint/suspicious/noConsole:: intentional console output
-    console.error(
-      `Claude Code was unable to find CLAUDE_CODE_GIT_BASH_PATH path "${process.env.CLAUDE_CODE_GIT_BASH_PATH}"`,
-    )
-    // eslint-disable-next-line custom-rules/no-process-exit
-    process.exit(1)
   }
 
   const gitPath = findExecutable('git')
@@ -116,12 +117,7 @@ export const findGitBashPath = memoize((): string => {
     }
   }
 
-  // biome-ignore lint/suspicious/noConsole:: intentional console output
-  console.error(
-    'Claude Code on Windows requires git-bash (https://git-scm.com/downloads/win). If installed but not in PATH, set environment variable pointing to your bash.exe, similar to: CLAUDE_CODE_GIT_BASH_PATH=C:\\Program Files\\Git\\bin\\bash.exe',
-  )
-  // eslint-disable-next-line custom-rules/no-process-exit
-  process.exit(1)
+  return null
 })
 
 /** Convert a Windows path to a POSIX path using pure JS. */

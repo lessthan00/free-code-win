@@ -1,0 +1,36 @@
+name: Windows CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build Windows binary
+        run: bun run build
+
+      - name: Smoke test (--version)
+        run: .\cli.exe --version
+
+      - name: Verify .exe exists
+        run: |
+          if (Test-Path .\cli.exe) {
+            Write-Host "Build successful: cli.exe exists"
+          } else {
+            Write-Error "Build failed: cli.exe not found"
+            exit 1
+          }

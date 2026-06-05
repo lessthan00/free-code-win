@@ -51,6 +51,29 @@ async function main(): Promise<void> {
     return;
   }
 
+  // Windows: auto-re-launch into Windows Terminal when running in conhost.
+  // Windows Terminal provides full ANSI/VT100/DEC 2026 support required by
+  // the Ink terminal UI. conhost has known cursor tracking bugs and limited
+  // escape sequence support (see hasCursorUpViewportYankBug).
+  if (process.platform === 'win32' && !process.env.WT_SESSION && !process.env.ConEmuANSI && !process.env.ConEmuPID) {
+    const wtPath = Bun.which('wt.exe')
+    if (wtPath) {
+      const wtArgs = ['--', process.execPath, ...process.argv.slice(1)]
+      Bun.spawn([wtPath, ...wtArgs], {
+        stdio: ['ignore', 'inherit', 'inherit'],
+        windowsHide: false,
+      })
+      // eslint-disable-next-line custom-rules/no-process-exit
+      process.exit(0)
+    }
+    // biome-ignore lint/suspicious/noConsole:: intentional console output
+    console.error(
+      'This CLI requires Windows Terminal (wt.exe) for proper display.\n' +
+      'Install it from the Microsoft Store: https://aka.ms/terminal\n' +
+      'Continuing in conhost — expect degraded rendering.',
+    )
+  }
+
   // For all other paths, load the startup profiler
   const {
     profileCheckpoint

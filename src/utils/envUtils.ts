@@ -6,9 +6,16 @@ import { join } from 'path'
 // tests that change the env var get a fresh value without explicit cache.clear.
 export const getClaudeConfigHomeDir = memoize(
   (): string => {
-    return (
-      process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), '.claude')
-    ).normalize('NFC')
+    if (process.env.CLAUDE_CONFIG_DIR) {
+      return process.env.CLAUDE_CONFIG_DIR.normalize('NFC')
+    }
+    // Windows: use %APPDATA%\ClaudeCode\ to match platform conventions.
+    // Fall back to ~/.claude when APPDATA is not set (e.g., running in
+    // Cygwin or an unusual shell that strips Windows env vars).
+    if (process.platform === 'win32' && process.env.APPDATA) {
+      return join(process.env.APPDATA, 'ClaudeCode').normalize('NFC')
+    }
+    return join(homedir(), '.claude').normalize('NFC')
   },
   () => process.env.CLAUDE_CONFIG_DIR,
 )

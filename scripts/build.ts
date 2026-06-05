@@ -109,13 +109,16 @@ for (let i = 0; i < args.length; i += 1) {
 }
 const features = [...featureSet]
 
+const isWindows = process.platform === 'win32'
+const buildTarget = isWindows ? 'bun-windows-x64' : 'bun'
+
 const outfile = compile
   ? dev
-    ? './dist/cli-dev'
-    : './dist/cli'
+    ? isWindows ? './dist/cli-dev.exe' : './dist/cli-dev'
+    : isWindows ? './dist/cli.exe' : './dist/cli'
   : dev
-    ? './cli-dev'
-    : './cli'
+    ? isWindows ? './cli-dev.exe' : './cli-dev'
+    : isWindows ? './cli.exe' : './cli'
 const buildTime = new Date().toISOString()
 const version = dev ? getDevVersion(pkg.version) : pkg.version
 
@@ -164,7 +167,7 @@ const cmd = [
   './src/entrypoints/cli.tsx',
   '--compile',
   '--target',
-  'bun',
+  buildTarget,
   '--format',
   'esm',
   '--outfile',
@@ -200,7 +203,7 @@ if (proc.exitCode !== 0) {
   process.exit(proc.exitCode ?? 1)
 }
 
-if (existsSync(outfile)) {
+if (existsSync(outfile) && !isWindows) {
   chmodSync(outfile, 0o755)
 }
 

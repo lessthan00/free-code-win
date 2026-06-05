@@ -45,3 +45,17 @@ Run the built binary with `./cli` or `./cli-dev`. Set `ANTHROPIC_API_KEY` in the
 ## Build system
 
 - scripts/build.ts is the build script and feature-flag bundler. Feature flags are set via build arguments (e.g., `--feature=ULTRAPLAN`) or presets like `--feature-set=dev-full` (see README for details).
+
+## Agent skills
+
+### Issue tracker
+
+使用本地 markdown 文件追踪 issue，存放在 `.scratch/<feature-slug>/` 下。详见 `docs/agents/issue-tracker.md`。
+
+### Triage labels
+
+使用标准 triage 标签：`needs-triage`、`needs-info`、`ready-for-agent`、`ready-for-human`、`wontfix`。详见 `docs/agents/triage-labels.md`。
+
+### Domain docs
+
+单上下文布局（single-context）：`CONTEXT.md` + `docs/adr/` 位于仓库根目录。详见 `docs/agents/domain.md`。
