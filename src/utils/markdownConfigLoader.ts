@@ -234,6 +234,7 @@ function resolveStopBoundary(cwd: string): string | null {
 export function getProjectDirsUpToHome(
   subdir: ClaudeConfigDirectory,
   cwd: string,
+  configDir = '.claude',
 ): string[] {
   const home = resolve(homedir()).normalize('NFC')
   const gitRoot = resolveStopBoundary(cwd)
@@ -250,7 +251,7 @@ export function getProjectDirsUpToHome(
       break
     }
 
-    const claudeSubdir = join(current, '.claude', subdir)
+    const claudeSubdir = join(current, configDir, subdir)
     // Filter to existing dirs. This is a perf filter (avoids spawning
     // ripgrep on non-existent dirs downstream) and the worktree fallback
     // in loadMarkdownFilesForSubdir relies on it. statSync + explicit error

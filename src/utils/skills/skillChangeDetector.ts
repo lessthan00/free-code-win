@@ -1,4 +1,5 @@
 import chokidar, { type FSWatcher } from 'chokidar'
+import { homedir } from 'os'
 import * as platformPath from 'path'
 import { getAdditionalDirectoriesForClaudeMd } from '../../bootstrap/state.js'
 import {
@@ -183,6 +184,15 @@ async function getWatchablePaths(): Promise<string[]> {
     }
   }
 
+  // User agents skills directory (~/.agents/skills)
+  const userAgentsSkillsPath = platformPath.join(homedir(), '.agents', 'skills')
+  try {
+    await fs.stat(userAgentsSkillsPath)
+    paths.push(userAgentsSkillsPath)
+  } catch {
+    // Path doesn't exist, skip it
+  }
+
   // User commands directory (~/.claude/commands)
   const userCommandsPath = getSkillsPath('userSettings', 'commands')
   if (userCommandsPath) {
@@ -205,6 +215,15 @@ async function getWatchablePaths(): Promise<string[]> {
     } catch {
       // Path doesn't exist, skip it
     }
+  }
+
+  // Project agents skills directory (.agents/skills)
+  const projectAgentsSkillsPath = platformPath.resolve('.agents', 'skills')
+  try {
+    await fs.stat(projectAgentsSkillsPath)
+    paths.push(projectAgentsSkillsPath)
+  } catch {
+    // Path doesn't exist, skip it
   }
 
   // Project commands directory (.claude/commands)
