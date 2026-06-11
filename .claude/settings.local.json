@@ -10,7 +10,8 @@
       "WebSearch",
       "mcp__blueprint__browser_network_requests",
       "mcp__blueprint__browser_interact",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "mcp__blueprint__browser_lookup"
     ]
   },
   "enabledMcpjsonServers": [
