@@ -1,13 +1,13 @@
-﻿# Free-Code 启动脚本 (精简版)
+﻿# Free-Code 启动脚本 (交互菜单版)
 # 用法：.\start.ps1
-# 注意：请先手动构建 free-code（例如 bun run build:dev:full）生成 ./cli-dev
 
 $ErrorActionPreference = "Stop"
 
 # ========== 全局状态 ==========
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $originalCwd = Get-Location
-$selectedBinary = ".\cli-dev"      # 固定使用开发版二进制
+$selectedBinary = ".\cli-dev"      # 默认二进制
+$selectedBuildVariant = "dev-full" # 默认构建变体
 $selectedProvider = "deepseek"     # 默认 API 提供商
 
 # ========== 工具函数 ==========
@@ -51,6 +51,148 @@ function Pause-Continue {
   Write-Host ""
   Write-Host "按 Enter 键返回主菜单..." -ForegroundColor DarkGray
   Read-Host | Out-Null
+}
+
+# ========== 1. Bun 环境检测与安装 ==========
+function Invoke-BunCheck {
+  Write-Step "1/4" "检测 Bun 运行环境..."
+
+  $bunInstalled = $false
+  try {
+    $bunVersion = bun --version 2>&1
+    if ($LASTEXITCODE -eq 0) {
+      Write-OK "Bun 已安装，版本: $bunVersion"
+      $bunInstalled = $true
+    }
+  } catch { }
+
+  if (-not $bunInstalled) {
+    Write-Warn "Bun 未安装，正在自动下载并安装（来源：bun.sh 官方）..."
+    $env:BUN_INSTALL = "$env:USERPROFILE\.bun"
+    try {
+      irm bun.sh/install.ps1 | iex
+    } catch {
+      Write-Err "Bun 自动安装失败！错误信息：$($_.Exception.Message)"
+      Write-Err "请手动安装 Bun：https://bun.sh"
+      exit 1
+    }
+    $env:Path = "$env:USERPROFILE\.bun\bin;$env:Path"
+    $bunVersion = bun --version 2>&1
+    if ($LASTEXITCODE -ne 0) {
+      Write-Err "Bun 安装后仍无法运行，请重启终端或手动安装。"
+      exit 1
+    }
+    Write-OK "Bun 安装成功，版本: $bunVersion"
+  }
+  Write-Host ""
+  return $true
+}
+
+# ========== 2. 项目依赖安装 ==========
+function Invoke-DepsCheck {
+  Write-Step "2/4" "安装项目依赖..."
+  Set-Location $scriptDir
+
+  if (Test-Path "$scriptDir\node_modules") {
+    Write-OK "node_modules 已存在，跳过安装（如需重新安装请先删除 node_modules）"
+  } else {
+    Write-Warn "正在运行 bun install..."
+    bun install
+    if ($LASTEXITCODE -ne 0) {
+      Write-Err "依赖安装失败！"
+      exit 1
+    }
+    Write-OK "依赖安装完成"
+  }
+  Write-Host ""
+}
+
+# ========== 构建菜单 ==========
+function Invoke-BuildMenu {
+  Write-Host "========================================" -ForegroundColor Cyan
+  Write-Host "  构建 free-code" -ForegroundColor Cyan
+  Write-Host "========================================" -ForegroundColor Cyan
+  Write-Host ""
+  Write-Host "  请选择构建变体：" -ForegroundColor Yellow
+  Write-Host ""
+  Write-Host "  [1] 标准构建 (./cli)        - 仅 VOICE_MODE，类似正式版"
+  Write-Host "  [2] 开发构建 (./cli-dev)    - 带调试标记的开发版"
+  Write-Host "  [3] 完整实验版 (./cli-dev)  - 全部 54 个实验功能 (推荐)"
+  Write-Host "  [4] 编译构建 (./dist/cli)   - 另类输出路径"
+  Write-Host "  [5] 自定义功能标志          - 手动指定 feature flags"
+  Write-Host "  [6] 返回主菜单"
+  Write-Host ""
+
+  $choice = Read-Option "请输入选项 (1-6)" 1 6
+
+  switch ($choice) {
+    1 {
+      Write-Warn "正在构建标准版..."
+      Set-Location $scriptDir
+      bun run build
+      if ($LASTEXITCODE -ne 0) { Write-Err "构建失败！"; return }
+      Write-OK "构建完成 -> ./cli"
+      $script:selectedBinary = ".\cli"
+      $script:selectedBuildVariant = "standard"
+      [Environment]::SetEnvironmentVariable("FREE_CODE_BUILD_VARIANT", "standard", "User")
+    }
+    2 {
+      Write-Warn "正在构建开发版..."
+      Set-Location $scriptDir
+      bun run build:dev
+      if ($LASTEXITCODE -ne 0) { Write-Err "构建失败！"; return }
+      Write-OK "构建完成 -> ./cli-dev"
+      $script:selectedBinary = ".\cli-dev"
+      $script:selectedBuildVariant = "dev"
+      [Environment]::SetEnvironmentVariable("FREE_CODE_BUILD_VARIANT", "dev", "User")
+    }
+    3 {
+      Write-Warn "正在构建完整实验版..."
+      Set-Location $scriptDir
+      bun run build:dev:full
+      if ($LASTEXITCODE -ne 0) { Write-Err "构建失败！"; return }
+      Write-OK "构建完成 -> ./cli-dev (全部 54 个实验功能)"
+      $script:selectedBinary = ".\cli-dev"
+      $script:selectedBuildVariant = "dev-full"
+      [Environment]::SetEnvironmentVariable("FREE_CODE_BUILD_VARIANT", "dev-full", "User")
+    }
+    4 {
+      Write-Warn "正在编译构建..."
+      Set-Location $scriptDir
+      bun run compile
+      if ($LASTEXITCODE -ne 0) { Write-Err "构建失败！"; return }
+      Write-OK "构建完成 -> ./dist/cli"
+      $script:selectedBinary = ".\dist\cli"
+      $script:selectedBuildVariant = "compile"
+      [Environment]::SetEnvironmentVariable("FREE_CODE_BUILD_VARIANT", "compile", "User")
+    }
+    5 {
+      Write-Host ""
+      Write-Host "  可用的 Feature Flags (多个用逗号分隔):" -ForegroundColor Yellow
+      Write-Host "  ULTRAPLAN, ULTRATHINK, BRIDGE_MODE, TOKEN_BUDGET,"
+      Write-Host "  HISTORY_PICKER, MESSAGE_ACTIONS, QUICK_SEARCH,"
+      Write-Host "  BUILTIN_EXPLORE_PLAN_AGENTS, VERIFICATION_AGENT,"
+      Write-Host "  AGENT_TRIGGERS, EXTRACT_MEMORIES, COMPACTION_REMINDERS,"
+      Write-Host "  TEAMMEM, BASH_CLASSIFIER, VOICE_MODE, SHOT_STATS, 等..."
+      Write-Host ""
+      $flags = Read-Host -Prompt "请输入要启用的 flags (逗号分隔，如 ULTRAPLAN,ULTRATHINK)"
+      if (-not [string]::IsNullOrWhiteSpace($flags)) {
+        $flagArgs = $flags -split ',' | ForEach-Object { "--feature=$($_.Trim())" }
+        Write-Warn "正在构建自定义版本..."
+        Set-Location $scriptDir
+        $buildCmd = "bun run ./scripts/build.ts $($flagArgs -join ' ')"
+        Write-Host "  执行: $buildCmd" -ForegroundColor DarkGray
+        Invoke-Expression $buildCmd
+        if ($LASTEXITCODE -ne 0) { Write-Err "构建失败！"; return }
+        Write-OK "构建完成 -> ./cli-dev"
+        $script:selectedBinary = ".\cli-dev"
+        $script:selectedBuildVariant = "custom"
+        [Environment]::SetEnvironmentVariable("FREE_CODE_BUILD_VARIANT", "custom", "User")
+      }
+    }
+    6 { return }
+  }
+  Pause-Continue
 }
 
 # ========== API 提供商配置 ==========
@@ -136,7 +278,7 @@ function Set-ProviderEnv {
         $masked = $apiKey.Substring(0, [Math]::Min(7, $apiKey.Length)) + "***"
         Write-OK "DeepSeek API Key: $masked"
       } else {
-        Write-Warn "未设置 DeepSeek API Key，可通过菜单 [5] 配置，或启动后 /login"
+        Write-Warn "未设置 DeepSeek API Key，可通过菜单 [6] 配置，或启动后 /login"
       }
 
       $env:ANTHROPIC_BASE_URL              = "https://api.deepseek.com/anthropic"
@@ -209,7 +351,7 @@ function Invoke-Launch {
     [string]$model = ""
   )
 
-  Write-Step "3/3" "启动 free-code..."
+  Write-Step "4/4" "启动 free-code..."
   Write-Host "========================================" -ForegroundColor Cyan
   Write-Host "  提示：建议使用 Windows Terminal 以获得最佳体验" -ForegroundColor Cyan
   Write-Host "  下载：https://aka.ms/terminal" -ForegroundColor Cyan
@@ -219,9 +361,19 @@ function Invoke-Launch {
   # 检查二进制是否存在
   $binaryPath = Join-Path $scriptDir $script:selectedBinary
   if (-not (Test-Path $binaryPath) -and -not (Test-Path "$binaryPath.exe")) {
-    Write-Err "错误：未找到 $script:selectedBinary ，请先手动构建 free-code（例如 bun run build:dev:full）"
-    Pause-Continue
-    return
+    Write-Warn "$script:selectedBinary 不存在，正在自动构建..."
+    Set-Location $scriptDir
+    switch ($script:selectedBuildVariant) {
+      "standard"  { bun run build }
+      "dev"       { bun run build:dev }
+      "compile"   { bun run compile }
+      default     { bun run build:dev:full }
+    }
+    if ($LASTEXITCODE -ne 0) {
+      Write-Err "自动构建失败！请手动构建后重试。"
+      Pause-Continue
+      return
+    }
   }
 
   # 恢复原始工作目录
@@ -310,19 +462,21 @@ function Invoke-MainMenu {
     Write-Host ""
     Write-Host "  当前设置:" -ForegroundColor DarkGray
     Write-Host "    提供商: $script:selectedProvider" -ForegroundColor DarkGray
-    Write-Host "    二进制:  $script:selectedBinary" -ForegroundColor DarkGray
+    Write-Host "    二进制:  $script:selectedBinary ($script:selectedBuildVariant)" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  请选择操作：" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "  [1] 启动 free-code (交互式 REPL)"
     Write-Host "  [2] 单次提问模式 (one-shot)"
     Write-Host "  [3] 指定模型启动"
-    Write-Host "  [4] 配置 API 提供商"
-    Write-Host "  [5] 安装/更新全局命令 (freecode)"
-    Write-Host "  [6] 退出"
+    Write-Host "  [4] 从源码运行 (bun run dev)"
+    Write-Host "  [5] 构建/重新构建"
+    Write-Host "  [6] 配置 API 提供商"
+    Write-Host "  [7] 安装/更新全局命令 (freecode)"
+    Write-Host "  [8] 退出"
     Write-Host ""
 
-    $choice = Read-Option "请输入选项 (1-6)" 1 6
+    $choice = Read-Option "请输入选项 (1-8)" 1 8
 
     switch ($choice) {
       1 {
@@ -362,17 +516,34 @@ function Invoke-MainMenu {
         break
       }
       4 {
+        # 从源码运行
+        Write-Warn "从源码运行 (bun run dev)，启动较慢..."
+        Set-ProviderEnv
+        Set-Location $scriptDir
+        Write-Host ""
+        & bun run dev
+        Write-Host ""
+        Write-Host "free-code 已退出。" -ForegroundColor Cyan
+        Pause-Continue
+        break
+      }
+      5 {
+        # 构建
+        Invoke-BuildMenu
+        break
+      }
+      6 {
         # 配置提供商
         Invoke-ProviderConfig
         break
       }
-      5 {
+      7 {
         # 安装全局命令
         Invoke-InstallGlobalCommand
         Pause-Continue
         break
       }
-      6 {
+      8 {
         Write-Host "再见!" -ForegroundColor Cyan
         exit 0
       }
@@ -384,10 +555,31 @@ function Invoke-MainMenu {
 
 Write-Banner
 
+# Bun 环境检测
+Invoke-BunCheck
+
+# 项目依赖安装
+Invoke-DepsCheck
+
 # 读取已保存的提供商配置
 $savedProvider = [Environment]::GetEnvironmentVariable("FREE_CODE_PROVIDER", "User")
 if (-not [string]::IsNullOrEmpty($savedProvider)) {
   $script:selectedProvider = $savedProvider
+}
+
+# 读取已保存的构建变体
+$savedVariant = [Environment]::GetEnvironmentVariable("FREE_CODE_BUILD_VARIANT", "User")
+if (-not [string]::IsNullOrEmpty($savedVariant)) {
+  $script:selectedBuildVariant = $savedVariant
+}
+
+# 根据构建变体设置二进制路径
+switch ($script:selectedBuildVariant) {
+  "standard"  { $script:selectedBinary = ".\cli" }
+  "dev"       { $script:selectedBinary = ".\cli-dev" }
+  "dev-full"  { $script:selectedBinary = ".\cli-dev" }
+  "compile"   { $script:selectedBinary = ".\dist\cli" }
+  "custom"    { $script:selectedBinary = ".\cli-dev" }
 }
 
 # 进入交互菜单
