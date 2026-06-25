@@ -321,6 +321,18 @@ export async function getAnthropicClient({
     }
   }
 
+  // ── DeepSeek provider via Anthropic-compatible API ───────────
+  if (isEnvTruthy(process.env.CLAUDE_CODE_USE_DEEPSEEK)) {
+    const deepseekApiKey = process.env.DEEPSEEK_API_KEY || ''
+    const clientConfig: ConstructorParameters<typeof Anthropic>[0] = {
+      apiKey: deepseekApiKey,
+      baseURL: 'https://api.deepseek.com/anthropic',
+      ...ARGS,
+      ...(isDebugToStdErr() && { logger: createStderrLogger() }),
+    }
+    return new Anthropic(clientConfig)
+  }
+
   // ── Gemini provider via fetch adapter ────────────────────────
   if (isEnvTruthy(process.env.CLAUDE_CODE_USE_GEMINI)) {
     const geminiApiKey =

@@ -1,7 +1,7 @@
 import type { AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS } from '../../services/analytics/index.js'
 import { isEnvTruthy } from '../envUtils.js'
 
-export type APIProvider = 'firstParty' | 'bedrock' | 'vertex' | 'foundry' | 'openai' | 'gemini'
+export type APIProvider = 'firstParty' | 'bedrock' | 'vertex' | 'foundry' | 'openai' | 'gemini' | 'deepseek'
 
 export function getAPIProvider(): APIProvider {
   return isEnvTruthy(process.env.CLAUDE_CODE_USE_BEDROCK)
@@ -14,7 +14,9 @@ export function getAPIProvider(): APIProvider {
           ? 'openai'
           : isEnvTruthy(process.env.CLAUDE_CODE_USE_GEMINI)
             ? 'gemini'
-            : 'firstParty'
+            : isEnvTruthy(process.env.CLAUDE_CODE_USE_DEEPSEEK)
+              ? 'deepseek'
+              : 'firstParty'
 }
 
 export function getAPIProviderForStatsig(): AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS {

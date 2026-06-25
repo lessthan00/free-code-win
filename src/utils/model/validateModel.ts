@@ -49,6 +49,17 @@ export async function validateModel(
     return { valid: true }
   }
 
+  // Check if it's a known third-party provider model (skip Anthropic API validation)
+  const provider = getAPIProvider()
+  if (provider === 'deepseek' && normalizedModel.startsWith('deepseek-')) {
+    validModelCache.set(normalizedModel, true)
+    return { valid: true }
+  }
+  if (provider === 'gemini' && normalizedModel.startsWith('gemini-')) {
+    validModelCache.set(normalizedModel, true)
+    return { valid: true }
+  }
+
   // Check if it matches ANTHROPIC_CUSTOM_MODEL_OPTION (pre-validated by the user)
   if (normalizedModel === process.env.ANTHROPIC_CUSTOM_MODEL_OPTION) {
     return { valid: true }

@@ -13,6 +13,7 @@ export const CLAUDE_3_7_SONNET_CONFIG = {
   foundry: 'claude-3-7-sonnet',
   openai: 'claude-3-7-sonnet-20250219',
   gemini: 'gemini-3.5-flash',
+  deepseek: 'deepseek-v4-flash',
 } as const satisfies ModelConfig
 
 export const CLAUDE_3_5_V2_SONNET_CONFIG = {
@@ -22,6 +23,7 @@ export const CLAUDE_3_5_V2_SONNET_CONFIG = {
   foundry: 'claude-3-5-sonnet',
   openai: 'claude-3-5-sonnet-20241022',
   gemini: 'gemini-3.5-flash',
+  deepseek: 'deepseek-v4-flash',
 } as const satisfies ModelConfig
 
 export const CLAUDE_3_5_HAIKU_CONFIG = {
@@ -31,6 +33,7 @@ export const CLAUDE_3_5_HAIKU_CONFIG = {
   foundry: 'claude-3-5-haiku',
   openai: 'claude-3-5-haiku-20241022',
   gemini: 'gemini-3.1-flash-lite',
+  deepseek: 'deepseek-v4-flash',
 } as const satisfies ModelConfig
 
 export const CLAUDE_HAIKU_4_5_CONFIG = {
@@ -40,6 +43,7 @@ export const CLAUDE_HAIKU_4_5_CONFIG = {
   foundry: 'claude-haiku-4-5',
   openai: 'claude-haiku-4-5-20251001',
   gemini: 'gemini-3.1-flash-lite',
+  deepseek: 'deepseek-v4-flash',
 } as const satisfies ModelConfig
 
 export const CLAUDE_SONNET_4_CONFIG = {
@@ -49,6 +53,7 @@ export const CLAUDE_SONNET_4_CONFIG = {
   foundry: 'claude-sonnet-4',
   openai: 'claude-sonnet-4-20250514',
   gemini: 'gemini-3.5-flash',
+  deepseek: 'deepseek-v4-pro[1m]',
 } as const satisfies ModelConfig
 
 export const CLAUDE_SONNET_4_5_CONFIG = {
@@ -58,6 +63,7 @@ export const CLAUDE_SONNET_4_5_CONFIG = {
   foundry: 'claude-sonnet-4-5',
   openai: 'claude-sonnet-4-5-20250929',
   gemini: 'gemini-3.5-flash',
+  deepseek: 'deepseek-v4-pro[1m]',
 } as const satisfies ModelConfig
 
 export const CLAUDE_OPUS_4_CONFIG = {
@@ -67,6 +73,7 @@ export const CLAUDE_OPUS_4_CONFIG = {
   foundry: 'claude-opus-4',
   openai: 'claude-opus-4-20250514',
   gemini: 'gemini-3.1-pro-preview',
+  deepseek: 'deepseek-v4-pro[1m]',
 } as const satisfies ModelConfig
 
 export const CLAUDE_OPUS_4_1_CONFIG = {
@@ -76,6 +83,7 @@ export const CLAUDE_OPUS_4_1_CONFIG = {
   foundry: 'claude-opus-4-1',
   openai: 'claude-opus-4-1-20250805',
   gemini: 'gemini-3.1-pro-preview',
+  deepseek: 'deepseek-v4-pro[1m]',
 } as const satisfies ModelConfig
 
 export const CLAUDE_OPUS_4_5_CONFIG = {
@@ -85,6 +93,7 @@ export const CLAUDE_OPUS_4_5_CONFIG = {
   foundry: 'claude-opus-4-5',
   openai: 'claude-opus-4-5-20251101',
   gemini: 'gemini-3.1-pro-preview',
+  deepseek: 'deepseek-v4-pro[1m]',
 } as const satisfies ModelConfig
 
 export const CLAUDE_OPUS_4_6_CONFIG = {
@@ -94,6 +103,7 @@ export const CLAUDE_OPUS_4_6_CONFIG = {
   foundry: 'claude-opus-4-6',
   openai: 'claude-opus-4-6',
   gemini: 'gemini-3.1-pro-preview',
+  deepseek: 'deepseek-v4-pro[1m]',
 } as const satisfies ModelConfig
 
 export const CLAUDE_SONNET_4_6_CONFIG = {
@@ -103,6 +113,7 @@ export const CLAUDE_SONNET_4_6_CONFIG = {
   foundry: 'claude-sonnet-4-6',
   openai: 'claude-sonnet-4-6',
   gemini: 'gemini-3.5-flash',
+  deepseek: 'deepseek-v4-pro[1m]',
 } as const satisfies ModelConfig
 
 // OpenAI Codex models
@@ -113,6 +124,7 @@ export const GPT_5_4_CONFIG = {
   foundry: 'gpt-5.4',
   openai: 'gpt-5.4',
   gemini: 'gpt-5.4',
+  deepseek: 'deepseek-v4-pro[1m]',
 } as const satisfies ModelConfig
 
 export const GPT_5_3_CODEX_CONFIG = {
@@ -122,6 +134,7 @@ export const GPT_5_3_CODEX_CONFIG = {
   foundry: 'gpt-5.3-codex',
   openai: 'gpt-5.3-codex',
   gemini: 'gpt-5.3-codex',
+  deepseek: 'deepseek-v4-pro[1m]',
 } as const satisfies ModelConfig
 
 export const GPT_5_4_MINI_CONFIG = {
@@ -131,6 +144,7 @@ export const GPT_5_4_MINI_CONFIG = {
   foundry: 'gpt-5.4-mini',
   openai: 'gpt-5.4-mini',
   gemini: 'gpt-5.4-mini',
+  deepseek: 'deepseek-v4-flash',
 } as const satisfies ModelConfig
 
 // @[MODEL LAUNCH]: Register the new config here.
