@@ -36,6 +36,7 @@ import {
   isEnvTruthy,
 } from '../../utils/envUtils.js'
 import { createCodexFetch } from './codex-fetch-adapter.js'
+import { createGeminiFetch } from './gemini-fetch-adapter.js'
 
 /**
  * Environment variables for different client types:
@@ -318,6 +319,22 @@ export async function getAnthropicClient({
       }
       return new Anthropic(clientConfig)
     }
+  }
+
+  // ── Gemini provider via fetch adapter ────────────────────────
+  if (isEnvTruthy(process.env.CLAUDE_CODE_USE_GEMINI)) {
+    const geminiApiKey =
+      process.env.GEMINI_API_KEY ||
+      process.env.GOOGLE_API_KEY ||
+      ''
+    const geminiFetch = createGeminiFetch(geminiApiKey)
+    const clientConfig: ConstructorParameters<typeof Anthropic>[0] = {
+      apiKey: 'gemini-placeholder',
+      ...ARGS,
+      fetch: geminiFetch as unknown as typeof globalThis.fetch,
+      ...(isDebugToStdErr() && { logger: createStderrLogger() }),
+    }
+    return new Anthropic(clientConfig)
   }
 
   // Determine authentication method based on available tokens

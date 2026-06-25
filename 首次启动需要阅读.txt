@@ -71,3 +71,6 @@ win11的话， 随便一个目录，右键，在终端中打开，输入freecode
 win10的话，随便一个目录，在地址栏，输入powershell, 进入终端，输入freecode, 即可进入
 
 在上次打开对话的目录中，进入后，/resume,即可浏览和载入上次对话记录
+
+
+将settings.local.json 放到 用户目录中的 .cloude文件夹里面

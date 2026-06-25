@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "TaskCreate",
+      "TaskUpdate",
+      "TaskGet",
+      "TaskList",
+      "AskUserQuestion",
+      "EnterPlanMode",
+      "ExitPlanMode",
+      "Skill",
+      "WebSearch",
+      "WebFetch",
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(npx *)"
+    ],
+    "deny": [
+      "Bash(dangerouslyDisableSandbox: *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Read(~/.ssh: *)",
+      "Read(~/.aws: *)",
+      "Read(.env: *)",
+      "Read(/.env: *)",
+      "Read(/etc/passwd: *)",
+      "Read(*/credentials: *)",
+      "Edit(~/.ssh: *)",
+      "Edit(~/.aws: *)",
+      "Edit(/etc: *)",
+      "Write(~/.ssh: *)",
+      "Write(~/.aws: *)",
+      "Write(/etc: *)"
+    ],
+    "defaultMode": "default",
+    "disableBypassPermissionsMode": "disable"
+  }
+}
