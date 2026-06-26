@@ -19,11 +19,13 @@ import { getCodexOAuthTokens } from '../../utils/auth.js'
 
 // ── Available Codex models ──────────────────────────────────────────
 export const CODEX_MODELS = [
+  { id: 'gpt-5.4', label: 'GPT-5.4', description: 'Latest GPT' },
+  { id: 'gpt-5.4-mini', label: 'GPT-5.4 Mini', description: 'Fast GPT model' },
+  { id: 'gpt-5.3-codex', label: 'GPT-5.3 Codex', description: 'Frontier agentic coding model' },
   { id: 'gpt-5.2-codex', label: 'GPT-5.2 Codex', description: 'Frontier agentic coding model' },
   { id: 'gpt-5.1-codex', label: 'GPT-5.1 Codex', description: 'Codex coding model' },
   { id: 'gpt-5.1-codex-mini', label: 'GPT-5.1 Codex Mini', description: 'Fast Codex model' },
   { id: 'gpt-5.1-codex-max', label: 'GPT-5.1 Codex Max', description: 'Max Codex model' },
-  { id: 'gpt-5.4', label: 'GPT-5.4', description: 'Latest GPT' },
   { id: 'gpt-5.2', label: 'GPT-5.2', description: 'GPT-5.2' },
 ] as const
 
@@ -37,7 +39,9 @@ export const DEFAULT_CODEX_MODEL = 'gpt-5.2-codex'
 export function mapClaudeModelToCodex(claudeModel: string | null): string {
   if (!claudeModel) return DEFAULT_CODEX_MODEL
   if (isCodexModel(claudeModel)) return claudeModel
+  // Pass through any GPT/Codex model name directly (e.g. gpt-5.3-codex, gpt-5.4)
   const lower = claudeModel.toLowerCase()
+  if (lower.startsWith('gpt-')) return claudeModel
   if (lower.includes('opus')) return 'gpt-5.1-codex-max'
   if (lower.includes('haiku')) return 'gpt-5.1-codex-mini'
   if (lower.includes('sonnet')) return 'gpt-5.2-codex'

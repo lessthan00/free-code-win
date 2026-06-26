@@ -14,7 +14,7 @@ Select and configure your API provider.
 Providers:
   deepseek   - DeepSeek API (needs API key)
   gemini     - Google Gemini API (needs API key)
-  openai     - OpenAI / Codex (needs OAuth via /login)
+  openai     - OpenAI / Codex (needs OAuth via /login, or API key)
   anthropic  - Anthropic API (default, needs OAuth via /login)
 
 Examples:
@@ -31,6 +31,7 @@ const ALL_PROVIDER_ENV_VARS = [
   'CLAUDE_CODE_USE_OPENAI',
   'GEMINI_API_KEY',
   'DEEPSEEK_API_KEY',
+  'OPENAI_API_KEY',
 ]
 
 function clearProviderEnv(): Record<string, undefined> {
@@ -100,7 +101,22 @@ function switchToGemini(apiKey?: string): string {
   return `Provider set to ${chalk.bold('Google Gemini')}\nModels will use Gemini Interactions API.\n\nTip: /login still works for Anthropic OAuth.`
 }
 
-function switchToOpenAI(): string {
+function switchToOpenAI(apiKey?: string): string {
+  const key = apiKey || ''
+  if (key) {
+    const envUpdate: Record<string, string | undefined> = {
+      ...clearProviderEnv(),
+      CLAUDE_CODE_USE_OPENAI: '1',
+      OPENAI_API_KEY: key,
+    }
+    const result = updateSettingsForSource('userSettings', { env: envUpdate })
+    if (result.error) {
+      return `Failed to configure OpenAI: ${result.error.message}`
+    }
+    applyConfigEnvironmentVariables()
+    return `Provider set to ${chalk.bold('OpenAI (API Key)')}\nAPI key saved.\n\nTip: Use ${chalk.bold('/model')} to select a model (e.g. gpt-4o).`
+  }
+
   const envUpdate: Record<string, string | undefined> = {
     ...clearProviderEnv(),
     CLAUDE_CODE_USE_OPENAI: '1',
@@ -146,7 +162,7 @@ function handleProviderCommand(args: string): string {
       return switchToGemini(rest)
     case 'openai':
     case 'codex':
-      return switchToOpenAI()
+      return switchToOpenAI(rest)
     case 'anthropic':
     case 'firstparty':
     case 'first-party':
