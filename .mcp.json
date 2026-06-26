@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "blueprint": {
-      "command": "cmd",
-      "args": ["/c", "npx", "@railsblueprint/blueprint-mcp@latest"]
-    }
-  }
-}
